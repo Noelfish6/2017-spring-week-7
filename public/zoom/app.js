@@ -23,13 +23,47 @@ for(var y = 0; y<=h; y+= h/10){
 	}
 }
 
+var zoom = d3.zoom()
+	.on('start',function(){
+		console.log('start')
+	})
+	.on('zoom',function(){
+		var t = d3.event.transform;
+		plot1.attr('transform','translate('+(t.x+m.l)+','+(t.y+m.t)+')scale('+t.k+')');
+		
+		plot1.selectAll('circle')
+		.style('stroke-width',1/t.k+'px');
+	})
+	.on('end',function(){
+		console.log(d3.event.transform);
+	})
+	.scaleExtent([.05,30]);
+
+svg.append('rect')
+	.attr('x',0)
+	.attr('y',0)
+	.attr('width', w + m.l + m.r)
+	.attr('height', h + m.t + m.b)
+	.style('fill', 'none')
+	.style('pointer-events', 'all')
+	.call(zoom);
+
 //Part 1: define zoom behavior
+
 
 //Part 2: event listeners
 
 //Part 3: apply zoom behavior
 
+
 //Part 4: setting zoom transform programmatically
+d3.select('body').on('click',function(){
+svg.select('rect').transition()
+	.call(zoom.transform,d3.zoomIdentity);
+})
+
+
+
 
 d3.queue()
 	.defer(d3.csv,'../data/hubway_trips_reduced.csv',parseTrips)
@@ -45,10 +79,10 @@ function dataLoaded(err,trips,stations){
 		tripsByEndStation = cf.dimension(function(d){return d.endStn});
 
 	//Create a map module
-/*	var map = Map()
+	var map = Map()
 		.height(600);
 	d3.select('#plot2').datum(stations).call(map);
-*/
+
 }
 
 function parseTrips(d){

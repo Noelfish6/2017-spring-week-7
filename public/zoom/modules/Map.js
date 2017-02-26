@@ -3,6 +3,9 @@ function Map(){
 	var m = {t:20,r:20,b:20,l:20},
 		w, h, W=800, H=600;
 	var plot;
+	var zoom = d3.zoom()
+		.scaleExtent([.5,4])
+		.on('zoom', zoomed);
 
 	var exports = function(div){
 		//Reset width and height and projection
@@ -26,6 +29,15 @@ function Map(){
 		var svgEnter = svg.enter().append('svg');
 		var plotEnter = svgEnter.append('g').attr('class','map');
 
+		svgEnter.append('rect')
+			.attr('x',0)
+			.attr('y',0)
+			.attr('width',W) //same size with svg, W
+			.attr('height',H)
+			.style('fill','none')
+			.style('pointer-events','all')
+			.call(zoom);
+
 		plot = svgEnter.merge(svg)
 			.attr('width',W)
 			.attr('height',H)
@@ -48,6 +60,13 @@ function Map(){
 			});
 		stations.exit().remove();
 
+	}
+
+	function zoomed(){
+		var t = d3.event.transform;
+
+		plot.attr('transform','translate('+(t.x+m.l)+','+(t.y+m.t)+')scale('+t.k+')');
+		plot.selectAll('circle').style('stroke-width',1/t.k +'px');
 	}
 
 	exports.width = function(_){

@@ -8,9 +8,10 @@ function Timeseries(){
 	};
 	var W, H, M ={t:30,r:40,b:30,l:40};
 	var brush = d3.brushX()
-		.on('end',brushend);
+		.on('end',brushend)
+		.on('brush',brushSnap);
 	var scaleX, scaleY;
-	var _dispatcher = d3.dispatch('timerange:select');
+	var _dispatcher = d3.dispatch('timerange:update');
 
 	var _brushable = true;
 	var _snapping = false;
@@ -96,14 +97,25 @@ function Timeseries(){
 			.attr('transform','translate(0,'+H+')')
 			.transition()
 			.call(axisX);
+		
+		if(_brushable){
+		plot.select('.brush').call(brush);
+		}
+		
 
 	}
 
 	function brushend(){
-		if(!d3.event.selection) {_dispatcher.call('timerange:select',this,null); return;}
-		var t0 = scaleX.invert(d3.event.selection[0]),
-			t1 = scaleX.invert(d3.event.selection[1]);
-		_dispatcher.call('timerange:select',this,[t0,t1]);
+		if(!d3.event.selection) return; //return means stop the function
+		console.log(d3.event.selection);
+
+		console.log("Timeseries:brush:end");
+		var s = d3.event.selection;
+		var t0 = scaleX.invert(s[0]),
+			t1 = scaleX.invert(s[1]);
+		console.log(t0,t1);
+
+		_dispatcher.call('timerange:update',this,[t0,t1]);
 	}
 
 	function brushSnap(){
@@ -113,8 +125,9 @@ function Timeseries(){
   			t0 = d3.timeMonth.floor(_t0),
   			t1 = d3.timeMonth.ceil(_t1);
 
-  		d3.select(this).call(d3.event.target.move, [scaleX(t0),scaleX(t1)]);
+  		d3.select(this).call(d3.event.target.move, [scaleX(t0),scaleX(t1)]); // brush = d3.event.target, safer for any change
 	}
+
 
 	//setting config values
 	//"Getter" and "setter" functions
